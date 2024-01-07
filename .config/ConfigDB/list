@@ -1,0 +1,13 @@
+#! /usr/bin/bash
+
+function list(){
+	
+	if [[ -d ../.db ]] ;then 
+		echo "=====*DBs Exist*====="
+		ls -F ../.db/ | grep '/' | tr '/' ' '
+		echo "====================="
+	else
+		 echo "No DB created yet."         
+	fi
+}
+list

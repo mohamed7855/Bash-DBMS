@@ -1,0 +1,30 @@
+#! /usr/bin/bash
+
+function create(){
+           	read -p "Enter DB Name: " name
+
+		while true ; do
+			# if user want to return MainMenu to check NameDB 
+		      if  [[ "$name" =~ ^:[qQ]$ ]] ; then	
+		  			exit
+		      elif [[ "$name" = [0-9]* ]] ; then 
+		          echo "Error name of DB can't start with number."
+		      elif [[ "$name" =~ ^["~""$""=""!""@""%""&""{""}""#"":"]+$ ]] ; then 
+		          echo "Error input please try again Special char exist"
+		      elif [[ "$name" =~ ^[A-Za-z0-9".""_"" ""-"]+$ ]] ; then 
+		          #cd location then use .
+		          echo "Done"
+		          if [[ -d ../.db/"$name" ]] ;then 
+		              echo "DB *$name* Already Exist"
+		          else
+		              #mkdir -m 777 -p ../.db/"$name"
+		              sudo mkdir -p ../.db/"$name"
+		              echo "DB *$name* Created Successfully."
+		              break
+		          fi 
+		      fi
+		      read -p "Invalid NamePlease Re-Enter DB Name: " name
+		done
+}
+create
+

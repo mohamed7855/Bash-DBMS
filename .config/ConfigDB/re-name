@@ -1,0 +1,25 @@
+#! /usr/bin/bash
+
+function rename(){
+	read -p "Which DB Want to Re-Name? " name
+	while true ; 
+	do
+		# if user want to return MainMenu to check NameDB 
+		if  [[ $name =~ ^:[qQ]$ ]] ; then	
+			exit
+		elif [[ -d ../.db/$name ]] ;then 
+			echo "DB *$name* Already Exit"
+			read -p "Enter New Name of DB? " newName
+			# rename DB
+			mv ../.db/$name ../.db/$newName
+			break
+		else
+			echo "DB *$name* Not Exist"
+		fi
+		      read -p "Please Re-Enter DB Name: " name
+	done
+	
+
+}
+rename
+
