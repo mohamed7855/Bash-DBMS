@@ -1,0 +1,81 @@
+#!/usr/bin/bash
+
+
+
+function create() {
+    read -p "Enter table Name: " tablename
+
+    while true; do
+        if [[ "$tablename" =~ ^[0-9] ]]; then
+            echo "Error: The table name can't start with a number."
+        elif [[ "$tablename" =~ ^["~""$""=""!""@""%""&""{""}""#"":"]+$ ]]; then
+            echo "Error: The table name can't start with special characters."
+        elif [[ "$tablename" =~ ^[A-Za-z0-9".""_"" ""-"]+$ ]]; then
+            echo "Done"
+            if [[ -f ../.db/"$name"/"$tablename" ]]; then
+                echo "Table *$tablename* Already Exists."
+            else
+                touch ../.db/"$name"/"$tablename"
+                chmod 777 ../.db/"$name"/"$tablename"
+
+                while true; do
+                    read -p "Enter number of columns: " col_num
+
+                    if [[ $col_num =~ ^[0-9]+$ && $col_num -gt 0 ]]; then
+                        for ((i = 1; i <= col_num; i++)); do
+                            read -p "Enter name for column $i: " col_name
+
+                            while true; do
+                                select choice in "STRING" "INT"; do
+                                    case $REPLY in
+                                      1)
+                                        data_type="VARCHAR(255)"
+                                          break
+                                          ;;
+                                      2)
+                                        data_type=INT
+                                         echo "Selected INT"
+                                           break
+                                           ;;
+                                      *)
+                                        echo "Invalid choice. Please enter 1 for STRING or 2 for INT."
+                                           ;;
+                                         esac
+                                done
+                                columns+=("$col_name")  # create array named coloumn and add col_names to it
+                                   echo -n "$col_name:" >> ../.db/"$name"/"$tablename"
+                                   echo -n "$data_type|" >> ../.db/"$name"/"$tablename"
+                                break
+                            done
+                        done
+
+                      
+
+                        # Ask user to choose primary key
+                        read -p "Choose a column for the primary key (1 to $col_num): " primary_key_choice
+
+                        if [[ $primary_key_choice =~ ^[0-9]+$ && $primary_key_choice -ge 1 && $primary_key_choice -le $col_num ]]; then
+                            primary_key_column="${columns[primary_key_choice - 1]}"
+                            sed -i "s/$primary_key_column/$primary_key_column(PK)/" ../.db/"$name"/"$tablename"
+                            echo -e " table $tablename is created successfully and contains $col_num columns \n and the primary key column is named = $primary_key_column "
+                            break
+                        else
+                            echo "Invalid input. Please enter a valid number between 1 and $col_num."
+                        fi
+                    else
+                        echo "Invalid input. Please enter a valid number greater than 0."
+                    fi
+                done
+            fi
+            break
+        fi
+
+        read -p "Invalid Name. Please Re-Enter table Name: " tablename
+    done
+}
+
+create
+
+
+
+
