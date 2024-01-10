@@ -1,1 +1,21 @@
 #! /usr/bin/bash
+
+function truncate(){
+	
+	read -p "Enter Table Name: " name
+	while true ;
+	do
+		# if user want to return MainTableMenu to check NameTable type :q or :Q
+		if  [[ "$name" =~ ^:[qQ]$ ]] ; then	
+			exit
+		elif [[ -f ../.db/"$nameDB"/"$name" ]] ;then 
+			# truncate 
+			sed -i '3,$d' ../.db/"$nameDB"/"$name"
+			break
+		else
+			echo "Table *$name* Not Exist."
+		fi
+	read -p "Invalid NamePlease Re-Enter Table Name: " name
+	done
+}
+truncate
