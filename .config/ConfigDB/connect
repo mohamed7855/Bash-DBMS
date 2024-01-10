@@ -1,2 +1,89 @@
 #! /usr/bin/bash
 
+function connect(){
+		
+		read -p "Enter DB Name: " name
+           	
+           	while true ;
+           	do
+		# if user want to return MainMenu to check NameDB 
+		if  [[ $name =~ ^:[qQ]$ ]] ;then	
+			exit
+		elif [[ -d ../.db/$name ]] ;then 
+			# connect DB
+			# sudo: the -s option may be used to run a privileged shell.
+			# sudo: the -D option may be used to run a command in a specific directory.
+			#sudo -s cd ../.db/$name
+			echo "DB *$name* Connected Successfully."
+			# save name in variable to use in function of table
+			nameDB=$name
+			break
+		else
+			echo "DB *$name* Not Exist to Connect."
+		fi
+		      read -p "Please Re-Enter DB Name: " name
+		done
+		
+		
+		MenuTable
+
+}
+
+function MenuTable(){
+	
+	while true ;
+      do
+		select choice in "CREATE TABLE" "LIST TABLEs" "Re-Name TABLE" "INSERT TABLE" "UPDATE TABLE" "DELETE FROM TABLE" "DROP TABLE" "TRUNCATE TABLE" "EXIT TABLE" " EXIT DB"
+		do 
+
+				    case $REPLY in 
+					  1)
+					  	source ./ConfigTable/create
+					  	break
+					  ;;
+					  2)
+					  	echo "LIST TABLEs"
+						source ./ConfigTable/list
+						break
+					  ;;
+					  3)
+					  	echo "Rename TABLE"
+					  	#sudo ./ConfigDB/connect
+					  ;;
+					  4)
+					  	echo "INSERT TABLEs"
+					  	#sudo ./ConfigDB/drop
+					  ;;
+					  5)
+					  	echo "UPDATE DB"
+					  	#sudo ./ConfigDB/re-name
+					  ;;
+					  6)
+					  	echo "DELETE FROM TABLE"
+					  ;;
+					  7)
+					  	echo "DROP TABLE"
+					  	source ./ConfigTable/drop
+					  	break
+					  ;;
+					  8)
+					  	echo "TRUNCATE TABLE"
+					  	source ./ConfigTable/truncate
+					  	break
+					  ;;
+					  9)
+					  	echo "EXIT TABLE"
+					  	continue
+					  ;;
+					  10)
+					  	echo "EXIT DB"
+					  	exit
+					  ;;
+					  *) 
+						echo "PLease Select Valid number 1|2|3|4|5."
+					  ;;
+				    esac
+		done 
+	done
+}
+connect
