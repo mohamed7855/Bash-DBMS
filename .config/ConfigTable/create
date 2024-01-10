@@ -29,12 +29,12 @@ function create() {
                                 select choice in "STRING" "INT"; do
                                     case $REPLY in
                                       1)
-                                        data_type="VARCHAR(255)"
+                                        data_type="STRING"
                                           break
                                           ;;
                                       2)
                                         data_type=INT
-                                         echo "Selected INT"
+                                        
                                            break
                                            ;;
                                       *)
@@ -43,8 +43,8 @@ function create() {
                                          esac
                                 done
                                 columns+=("$col_name")  # create array named coloumn and add col_names to it
-                                   echo -n "$col_name:" >> ../.db/"$name"/"$tablename"
-                                   echo -n "$data_type|" >> ../.db/"$name"/"$tablename"
+                                   echo -n "$col_name:" >> ../.db/"$name"/"$tablename"    # -n to prevent new line
+                                   echo  "$data_type|" >> ../.db/"$name"/"$tablename"
                                 break
                             done
                         done
