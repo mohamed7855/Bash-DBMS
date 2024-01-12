@@ -48,7 +48,8 @@ function MenuTable(){
 					  ;;
 					  3)
 					  	echo "Rename TABLE"
-					  	#sudo ./ConfigDB/connect
+					  	source ./ConfigTable/rename
+					  	break
 					  ;;
 					  4)
 					  	echo "INSERT TABLEs"
@@ -56,10 +57,13 @@ function MenuTable(){
 					  ;;
 					  5)
 					  	echo "UPDATE DB"
-					  	#sudo ./ConfigDB/re-name
+					  	source ./ConfigTable/update
+						break
 					  ;;
 					  6)
 					  	echo "DELETE FROM TABLE"
+					  	source ./ConfigTable/delete
+					  	break
 					  ;;
 					  7)
 					  	echo "DROP TABLE"

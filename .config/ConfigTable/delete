@@ -1,1 +1,138 @@
 #! /usr/bin/bash
+
+function delete(){
+	
+	read -p "Enter Table Name: " name
+	while true ;
+	do
+		# if user want to return MainTableMenu to check NameTable type :q or :Q
+		if  [[ "$name" =~ ^:[qQ]$ ]] ; then	
+			exit
+		elif [[ -f ../.db/"$nameDB"/"$name" ]] ;then 
+			if command -v sponge > /dev/null; then
+			  	deleteTable
+			else
+			  	echo "sponge command not found. Please install moreutils or use an alternative method."
+			  	echo "type :q or :Q if you want to exit process and return to connect another DB."
+			 	read -p "You Want To Install? yY/nN." newValue
+			  	if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
+					break
+				elif [[ "$newValue" =~ ^[yY]$ ]] ; then
+			     		sudo apt update
+			     		sudo apt install moreutils
+			     		break
+		    		elif [[ "$newValue" =~ ^[nN]$ ]] ; then
+					echo "Cancel Operation Successfully Sorry You can't Deleted."
+					break
+				else
+			     		echo "Type Valid Value :q|:Q|y|Y|n|N. "
+			     		break
+			     
+				fi
+			fi
+			#break
+		else
+			echo "Table *$name* Not Exist."
+		fi
+	read -p "Invalid NamePlease Re-Enter Table Name: " name
+	done
+}
+
+function deleteTable(){
+	
+	while true ;
+	do
+	
+		columnsNum=$(awk -F '|' '{print NF; exit;}' ../.db/"$nameDB"/"$name")
+		#echo $columnsNum
+		IFS="|" read -a columns <<< "$(awk -F '|' 'NR==1  {print $0}' ../.db/"$nameDB"/"$name")"
+		columnsName=()
+		columnsType=()
+		for ((i=0; i<$columnsNum; i++));
+		do
+			columnsName[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $1}' )
+			columnsType[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $2}' )
+		done
+		#echo ${columnsName[@]}
+		#echo ${columnsType[@]}
+		
+		select choice in "DELETE COLUMN IN ALL RECORDs" "EXIT DB"
+		do
+			case $REPLY in 
+			1)	
+				echo "#########################################"
+				echo "ALL COLUMNs IN TABLE *$name*"
+				for ((i=0; i<$columnsNum; i++));
+				do
+					echo "$((i+1)): ${columnsName[$i]}"
+				done
+				echo "#########################################"
+				
+				while true;
+				do
+				echo "SELECT NUMBER OF COLUMN U WANT TO DELETE"
+					select choice in "${columnsName[@]}"
+					do
+					case $REPLY in
+					[1-"$columnsNum"])
+						# user choose 3 as column can be id(pk) or age:num or name:string
+						if [[ "${columnsName[$REPLY-1]}" =~ .*\(pk\)$ ]];then
+							echo "Column *${columnsName[$REPLY-1]}* is (PK) and Can't Delete it."
+							break
+						else
+							# not pk
+							# check data type then update
+							#echo "not pk: ${columnsName[$REPLY-1]}"
+							
+							if [[ "${columnsType[$REPLY-1]}" =~ ^(int|string)$ ]];then
+								echo "column (${columnsName[$REPLY-1]}) will deleted in all records"
+								read -p "Are You Sure U Want To Delete? yY/nN." newValue
+								echo "type :q or :Q if you want to exit process and return to connect another DB."
+								if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
+							  			break
+								elif [[ "$newValue" =~ ^[yY]$ ]] ; then
+							     		awk -F '|' -v val="" 'BEGIN{OFS=FS} NR>2 {$'"$REPLY"'=val}1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+							     		echo "Column *${columnsName[$REPLY-1]}* Deleted Successfully."
+							     		exit
+							    	elif [[ "$newValue" =~ ^[nN]$ ]] ; then
+							     		echo "Cancel Operation Successfully."
+							     		break
+							     	else
+							     		echo "Type Valid Value :q|:Q|y|Y|n|N. "
+							     		break
+							     
+								fi
+									
+									
+									
+															
+							fi
+						
+						
+						fi
+						
+						#break
+					;;
+					*) 
+						echo "PLease Select Valid number."
+					;;
+					esac			 
+					done
+				done
+				
+			;;
+			2)
+			  	echo "EXIT DB"
+				exit
+			;;
+			*) 
+				echo "PLease Select Valid number 1|2."
+			;;
+			esac
+		done 
+		# Exit Table
+		#break
+	done
+}
+
+delete

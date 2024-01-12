@@ -1,1 +1,506 @@
 #! /usr/bin/bash
+
+function update(){
+
+	read -p "Enter Table Name: " name
+	while true ;
+	do
+		# if user want to return MainTableMenu to check NameTable type :q or :Q
+		if  [[ "$name" =~ ^:[qQ]$ ]] ; then	
+			exit
+		elif [[ -f ../.db/"$nameDB"/"$name" ]] ;then 
+			if command -v sponge > /dev/null; then
+			  	updateTable
+			else
+			  	echo "sponge command not found. Please install moreutils or use an alternative method."
+			  	echo "type :q or :Q if you want to exit process and return to connect another DB."
+			 	read -p "You Want To Install? yY/nN." newValue
+			  	if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
+					break
+				elif [[ "$newValue" =~ ^[yY]$ ]] ; then
+			     		sudo apt update
+			     		sudo apt install moreutils
+			     		break
+		    		elif [[ "$newValue" =~ ^[nN]$ ]] ; then
+					echo "Cancel Operation Successfully Sorry You can't Updated."
+					break
+				else
+			     		echo "Type Valid Value :q|:Q|y|Y|n|N. "
+			     		break
+			     
+				fi
+			fi
+			
+			#break
+		else
+			echo "Table *$name* Not Exist."
+		fi
+	read -p "Invalid NamePlease Re-Enter Table Name: " name
+	done
+}
+
+
+function updateTable(){
+	
+	while true ;
+	do
+	
+		columnsNum=$(awk -F '|' '{print NF; exit;}' ../.db/"$nameDB"/"$name")
+		#echo $columnsNum
+		IFS="|" read -a columns <<< "$(awk -F '|' 'NR==1  {print $0}' ../.db/"$nameDB"/"$name")"
+		columnsName=()
+		columnsType=()
+		for ((i=0; i<$columnsNum; i++));
+		do
+			columnsName[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $1}' )
+			columnsType[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $2}' )
+		done
+		#echo ${columnsName[@]}
+		#echo ${columnsType[@]}
+		
+		select choice in "UPDATE COLUMN IN ALL RECORDs" "UPDATE COLUMN WITH CONDITION" "EXIT DB"
+		do
+			case $REPLY in 
+			1)	
+				echo "#########################################"
+				echo "ALL COLUMNs IN TABLE *$name*"
+				for ((i=0; i<$columnsNum; i++));
+				do
+					echo "$((i+1)): ${columnsName[$i]}"
+				done
+				echo "#########################################"
+				
+				while true;
+				do
+				echo "SELECT NUMBER OF COLUMN U WANT TO UPDATE"
+					select choice in "${columnsName[@]}"
+					do
+					case $REPLY in
+					[1-"$columnsNum"])
+						# user choose 3 as column can be id(pk) or age:num or name:string
+						if [[ "${columnsName[$REPLY-1]}" =~ .*\(pk\)$ ]];then
+							echo "Column *${columnsName[$REPLY-1]}* is (PK) and Can't Update All Record With Same Value."
+							break
+						else
+							# not pk
+							# check data type then update
+							echo "not pk: ${columnsName[$REPLY-1]}"
+							
+							if [[ "${columnsType[$REPLY-1]}" =~ ^int$ ]];then
+								echo "this must int ${columnsType[$REPLY-1]} and not pk: ${columnsName[$REPLY-1]}"
+								echo "type :q or :Q if you want to exit process and return to connect another DB."
+								read -p "Enter New Value (int) of Column *${columnsName[$REPLY-1]}*: " newValue
+								while true ; 
+								do
+									if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
+								  		exit
+								     	elif [[ "$newValue" =~ ^[0-9]+$ ]] ; then
+								     		awk -F '|' -v val="$newValue" 'BEGIN{OFS=FS} NR>2 {$'"$REPLY"'=val}1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+								     		echo "Column *${columnsName[$REPLY-1]}* Updated Successfully."
+								     		break
+									fi
+		      							read -p "Invalid Value Re-Enter New Value for Column *${columnsName[$REPLY-1]}* and Must Be Number: " newValue
+								done
+								break								
+							elif [[ "${columnsType[$REPLY-1]}" =~ ^string$ ]];then
+								echo "this must string ${columnsType[$REPLY-1]} and not pk: ${columnsName[$REPLY-1]}"
+								echo "type :q or :Q if you want to exit process and return to connect another DB."
+								read -p "Enter New Value (string) of Column *${columnsName[$REPLY-1]}*: " newValue
+								while true ; 
+								do
+									if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
+								  		exit
+								     	elif [[ "$newValue" =~  ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$  ]] ; then
+								     		awk -F '|' -v val="$newValue" 'BEGIN{OFS=FS} NR>2 {$'"$REPLY"'=val}1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+								     		echo "Column *${columnsName[$REPLY-1]}* Updated Successfully."
+								     		break
+									fi
+		      							read -p "Invalid Value Re-Enter New Value for Column *${columnsName[$REPLY-1]}* and Must Be String: " newValue
+								done
+								break
+							fi
+						fi
+						break
+						
+						
+						#awk -F '|' -v val="aloooohaaa" 'BEGIN{OFS=FS} NR>2 {$'"$REPLY"'=val}1' "../../.db/ppp/ali" | sponge "../../.db/ppp/ali"
+						#break
+					;;
+					*) 
+						echo "PLease Select Valid number."
+					;;
+					esac			 
+					done
+				done
+				
+				#awk -F '|' -v val="|aloooohaaa|" 'NR==5 {$3=val}1' "../../.db/ppp/ali" | sponge "../../.db/ppp/ali"
+				#break
+			;;
+			2)	while true;
+				do
+				  	echo "UPDATE COLUMN WITH CONDITION"
+				  	echo "#########################################"
+					echo "ALL COLUMNs IN TABLE *$name*"
+					for ((i=0; i<$columnsNum; i++));
+					do
+						echo "$((i+1)): Update ${columnsName[$i]}"
+					done
+					echo "$((columnsNum+1)): Exit From DB."
+					echo "#########################################"
+					read -p "Select Choise : " choise
+					
+					if [ "$choise" -eq $((columnsNum+1)) ]; then
+						exit
+					elif [ "$choise" -gt 0 -a "$choise" -le "$columnsNum" ]; then # user select to update column
+						if [[ "${columnsName[$choise-1]}" =~ .*\(pk\)$ ]];then
+							echo "Updated PK Not Supported Yet In New Version Will Be Supported."
+							
+						#check not repeat then update
+<<COMMENT
+							newValue=""
+							if [[ "${columnsType[$choise-1]}" =~ ^int$ ]];then
+								read -p "Enter New Value (int) of Column *${columnsName[$choise-1]}* : " newValue
+								if  [[ "$newValue" =~ ^[0-9]+$ ]] ; then
+									echo "New Value(int) Will Be "$newValue""
+								else 
+									echo "Not Valid Number"
+									break
+								fi
+							elif [[ "${columnsType[$choise-1]}" =~ ^string$ ]];then
+								read -p "Enter New Value (int or string) of Column *${columnsName[$choise-1]}* start with number or char and can use .-_ : " newValue
+								if  [[ "$newValue" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_""-"]*$ ]] ; then
+									echo "New Value(string) Will Be "$newValue""
+								else
+									echo "Not Valid String"
+									break
+								fi
+							fi
+							
+							if  [[ "$newValue" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_""-"]*$ ]] ; then
+							#make condition with which column
+								echo "ALL COLUMNs IN TABLE *$name* to make condition."
+								for ((i=0; i<$columnsNum; i++));
+								do
+									echo "$((i+1)): Condition With Column (${columnsName[$i]})"
+								done
+								read -p "Which Column to Make Condition  : " conditionC #condition with column
+								if [ "$conditionC" -gt 0 -a "$conditionC" -le "$columnsNum" ]; then
+									if [[ "${columnsType[$conditionC-1]}" =~ ^int$ ]];then
+										echo "Which Condition With Column *$conditionC* to Apply.!"
+										echo "1: > ."
+										echo "2: < ."
+										echo "3: >= ."
+										echo "4: <= ."
+										echo "5: == ."
+										echo "6: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										if [[ "$conditionVal" =~ ^[0-9]+$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												declare -a valuePks=()
+												valuePks=($(awk -F '|' -v col="$conditionC" 'NR>2 {print $col}' "../.db/"$nameDB"/"$name""))
+												echo "${valuePks[@]}"
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 
+'BEGIN{OFS=FS} NR>2
+    for (i in valuePks) {
+      myArrayValues[valuePks[i]] = 1
+    }
+  }
+  NR > 2 {
+    if ($conditionC in myArrayValues && $conditionC > conditionVal) {
+      $choise = val
+    }
+    print
+  }' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+
+												
+											
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" '
+  BEGIN {OFS=FS; updated = 0} # Initialize output field separator and a flag for update
+  NR > 2 {
+  
+  }
+  END{
+  
+  }' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+
+												read -p " hello " k
+												break
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC > conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC < conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												break
+											elif [ "$conditionCheck" -eq 3 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC >= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												break
+											elif [ "$conditionCheck" -eq 4 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC <= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												break
+											elif [ "$conditionCheck" -eq 5 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												break
+											elif [ "$conditionCheck" -eq 6 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												break
+											else
+												echo "Select Valid Number for Condition."
+												break
+											fi
+										else	
+											break
+										fi
+										
+										
+										
+												
+									elif [[ "${columnsType[$conditionC-1]}" =~ ^string$ ]]; then
+										echo "hhhhhhhhhh"
+										echo "Which Condition With Column *$conditionC* to Apply."
+										echo "1: == ."
+										echo "2: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										while true ; 
+										do
+										if [[ "$conditionVal" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break												
+											else
+												echo "Select Valid Number for Condition."
+											fi
+										else	
+											echo "New Value Must Start with char A-z Or Number then can use space|-|.|_"
+										fi	
+										read -p "ReEnter Condition Value: " conditionVal
+										done
+										
+										
+										
+										
+									fi
+								else
+									break
+								fi
+								
+							else
+								break
+							fi
+
+
+
+
+COMMENT
+
+
+
+
+							
+							
+							#break
+						elif [[ "${columnsType[$choise-1]}" =~ ^int$ ]];then
+							read -p "Enter New Value (int) of Column *${columnsName[$choise-1]}*: " newValue
+							if  [[ "$newValue" =~ ^[0-9]+$ ]] ; then
+							#make condition with which column
+								echo "ALL COLUMNs IN TABLE *$name* to make condition."
+								for ((i=0; i<$columnsNum; i++));
+								do
+									echo "$((i+1)): Condition With Column (${columnsName[$i]})"
+								done
+								read -p "Which Column to Make Condition  : " conditionC #condition with column
+								if [ "$conditionC" -gt 0 -a "$conditionC" -le "$columnsNum" ]; then
+									if [[ "${columnsType[$conditionC-1]}" =~ ^int$ ]];then
+										echo "Which Condition With Column *$conditionC* to Apply."
+										echo "1: > ."
+										echo "2: < ."
+										echo "3: >= ."
+										echo "4: <= ."
+										echo "5: == ."
+										echo "6: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										if [[ "$conditionVal" =~ ^[0-9]+$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC > conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC < conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 3 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC >= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 4 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC <= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 5 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 6 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											else
+												echo "Select Valid Number for Condition."
+											fi
+										else	
+											break
+										fi
+										
+										
+										
+												
+									elif [[ "${columnsType[$conditionC-1]}" =~ ^string$ ]]; then
+										echo "hhhhhhhhhh"
+										echo "Which Condition With Column *$conditionC* to Apply."
+										echo "1: == ."
+										echo "2: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										while true ; 
+										do
+										if [[ "$conditionVal" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break
+												
+											else
+												echo "Select Valid Number for Condition."
+											fi
+										else	
+											echo "New Value Must Start with char A-z Or Number then can use space|-|.|_"
+										fi	
+										read -p "ReEnter Condition Value: " conditionVal
+										done
+										
+										
+										
+										
+									fi
+								else
+									break
+								fi
+								
+							else
+								break
+							fi
+							
+						elif [[ "${columnsType[$choise-1]}" =~ ^string$ ]];then
+							read -p "Enter New Value (string) of Column *${columnsName[$choise-1]}*: " newValue
+							if  [[ "$newValue" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]] ; then
+							#make condition with which column
+								echo "ALL COLUMNs IN TABLE *$name* to make condition."
+								for ((i=0; i<$columnsNum; i++));
+								do
+									echo "$((i+1)): Condition With Column (${columnsName[$i]})"
+								done
+								read -p "Which Column to Make Condition  : " conditionC #condition with column
+								if [ "$conditionC" -gt 0 -a "$conditionC" -le "$columnsNum" ]; then
+									if [[ "${columnsType[$conditionC-1]}" =~ ^int$ ]];then
+										echo "Which Condition With Column *$conditionC* to Apply."
+										echo "1: > ."
+										echo "2: < ."
+										echo "3: >= ."
+										echo "4: <= ."
+										echo "5: == ."
+										echo "6: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										if [[ "$conditionVal" =~ ^[0-9]+$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC > conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC < conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 3 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC >= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 4 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC <= conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 5 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											elif [ "$conditionCheck" -eq 6 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val} 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+											else
+												echo "Select Valid Number for Condition."
+											fi
+										else	
+											break
+										fi
+										
+										
+										
+												
+									elif [[ "${columnsType[$conditionC-1]}" =~ ^string$ ]]; then
+										echo "Which Condition With Column *$conditionC* to Apply."
+										echo "1: == ."
+										echo "2: != ."
+										read -p "Select Condition: " conditionCheck
+										read -p "Enter Condition Value: " conditionVal
+										
+										while true ; 
+										do
+										if [[ "$conditionVal" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]] ; then
+											
+											if [ "$conditionCheck" -eq 1 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC == conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break
+											elif [ "$conditionCheck" -eq 2 ]; then
+												awk -F '|' -v val="$newValue" -v conditionC="$conditionC" -v conditionVal="$conditionVal" -v choise="$choise" 'BEGIN{OFS=FS} NR>2 { if ($conditionC != conditionVal) $choise=val } 1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+												echo "Data Updated Successfully."
+												break
+												
+											else
+												echo "Select Valid Number for Condition."
+											fi
+										else	
+											echo "New Value Must Start with char A-z Or Number then can use space|-|.|_"
+										fi	
+										read -p "ReEnter Condition Value: " conditionVal
+										done
+										
+										
+										
+										
+									fi
+								else
+									break
+								fi
+								
+							else
+								break
+							fi
+							
+							
+						fi
+					fi
+				done
+
+			;;
+			3)
+			  	echo "EXIT DB"
+				exit
+			;;
+			*) 
+				echo "PLease Select Valid number 1|2|3|4|5."
+			;;
+			esac
+		done 
+		# Exit Table
+		#break
+	done
+}
+
+update
+#updateTable
