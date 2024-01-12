@@ -1,0 +1,58 @@
+#! /usr/bin/bash
+LC_COLLATE=C # Terminal Case Sensetive 
+shopt -s extglob # Enable Special Pattern
+
+function drop(){
+	
+	while true ; 
+	do
+		select choice in "DROP All TABLEs" "DROP TABLE BY NAME" "EXIT"
+		do 
+			case $REPLY in 
+			1)
+			 # Check if there are any files
+			  files="../.db/$name"/*
+
+                                 
+                            if [ -e $files ]; then
+                            sudo rm -f $files
+                             echo "All Tables Deleted Successfully."
+                                 else
+                                echo "No Tables created yet."
+                                     fi
+                                       break
+                        ;;
+			2)
+			  	read -p "Enter table Name: " tablename
+			  	while true ; 
+			  	do
+			  		# if user want to return MainMenu to check nameTable
+			  		if [[ $tablename =~ ^:[qQ]$ ]] ; then	
+			  			exit
+			  		elif [[ -f "../.db/$name/$tablename" ]] ;then
+			  			sudo rm -r ../.db/"$name"/"$tablename"
+				      	echo "Table $tablename Deleted Successfully."
+				      	break
+				    	else
+				    		echo "Table $tablename Not Exist to Delete."
+				    fi
+				    	   read -p "Please Re-Enter Table Name: " tablename
+				    	   
+				    	   
+				done
+				
+				break
+			;;
+			3)
+			  	exit
+			;;
+			*)
+		      echo "PLease Select Valid number 1|2|3."
+		      ;;
+		      
+		      esac
+		      
+		done
+	done
+}
+drop

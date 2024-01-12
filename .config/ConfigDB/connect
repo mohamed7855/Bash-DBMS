@@ -33,17 +33,17 @@ function MenuTable(){
 	
 	while true ;
       do
-		select choice in "CREATE TABLE" "LIST TABLEs" "Re-Name TABLE" "INSERT TABLE" "UPDATE TABLE" "DELETE FROM TABLE" "DROP TABLE" "TRUNCATE TABLE" "EXIT TABLE" " EXIT DB"
+		select choice in "CREATE TABLE" "LIST TABLEs" "Re-Name TABLE" "INSERT TABLE" "UPDATE TABLE" "DELETE FROM TABLE" "DROP TABLE" "TRUNCATE TABLE" "SELECT TABLE" "EXIT TABLE" " EXIT DB"
 		do 
 
 				    case $REPLY in 
 					  1)
-					  	source ./ConfigTable/create
+					  	. ./ConfigTable/create
 					  	break
 					  ;;
 					  2)
 					  	echo "LIST TABLEs"
-						source ./ConfigTable/list
+						. ./ConfigTable/list
 						break
 					  ;;
 					  3)
@@ -52,8 +52,11 @@ function MenuTable(){
 					  	break
 					  ;;
 					  4)
-					  	echo "INSERT TABLEs"
-					  	#sudo ./ConfigDB/drop
+					         echo "INSERT TABLES"
+					  	
+					  	 . ./ConfigTable/insert
+					  	 break
+					  
 					  ;;
 					  5)
 					  	echo "UPDATE DB"
@@ -75,11 +78,17 @@ function MenuTable(){
 					  	source ./ConfigTable/truncate
 					  	break
 					  ;;
-					  9)
+
+                                          9)
+					             echo "SELECT TABLE"
+					  	. ./ConfigTable/selecttable
+					  
+					  ;;
+					  10)
 					  	echo "EXIT TABLE"
 					  	continue
 					  ;;
-					  10)
+					  11)
 					  	echo "EXIT DB"
 					  	exit
 					  ;;

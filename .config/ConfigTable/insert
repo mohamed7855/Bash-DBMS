@@ -1,1 +1,71 @@
-#! /usr/bin/bash
+#!/usr/bin/bash
+
+declare -a pkvalues
+
+function insert() {
+    # Prompt user for table name
+    while true; do
+        read -p "Enter table Name: " tablename
+
+        if [[ -f "../.db/$name/$tablename" ]]; then
+            break
+        else
+            echo "Table $tablename does not exist."
+        fi
+    done
+
+    # Read col_name & datatype from table file (the first line)
+    tablepath="../.db/$name/$tablename"
+
+    # Get the first line from the file
+    firstline=$(head -n 1 "$tablepath")
+
+    # Extract column names and data types
+    IFS='|' read -ra columns <<< "$firstline"
+
+    # Loop through columns array and extract col_name and data_type
+    for i in "${columns[@]}"; do
+        IFS=':' read -r col_name data_type <<< "$i"
+
+        # Prompt user for column values and validate data type
+        while true; do
+            read -p "Enter value for $col_name [$data_type]: " value
+
+            # Validate data type
+            if [[ "$data_type" == "INT" && ! "$value" =~ ^[0-9]+$ ]]; then
+                echo -e "\e[1;31mInvalid input. $col_name should be of type $data_type.\e[0m"
+            elif [[ "$data_type" == "STRING" && ! "$value" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]]; then
+                echo -e "\e[1;31mInvalid input. $col_name should be of type $data_type.\e[0m"
+            else
+           
+            
+                # Check uniqueness of primary key
+                if [[ $col_name == *"(PK)" ]]; then
+                    # Check if the value is already in the array
+                    if [[ " ${pkvalues[@]} " =~ " $value " ]]; then
+                        echo -e "\e[1;31mInvalid input. $col_name must be unique.\e[0m"
+                        continue
+                    else
+                        # Add the value to the array
+                      
+                        pkvalues+=("$value")
+                    fi
+                fi
+
+                echo -n "$value|" >> "../.db/$name/$tablename"
+                break  # Break the inner while loop if the input is valid
+            fi
+        done
+
+        # Append dot after the last input
+        if [[ $col_name == "${columns[-1]%%:*}" ]]; then
+            echo  "." >> "../.db/$name/$tablename"
+        fi
+
+        echo "Column Name: $col_name, Data Type: $data_type, Value: $value"
+    done
+}
+
+
+insert
+

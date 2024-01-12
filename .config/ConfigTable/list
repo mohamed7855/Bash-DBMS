@@ -1,1 +1,15 @@
 #! /usr/bin/bash
+
+function list() {
+    if [[ -d "../.db/"$name"" && ! "$(ls -A ../.db/"$name")" ]]; then
+        echo "No Table created yet."
+    else
+        echo "=====Tables Exist====="
+        ls -F ../.db/"$name"/ | grep '*' | tr '*' ' '
+        echo "====================="
+    fi
+}
+
+
+list
+

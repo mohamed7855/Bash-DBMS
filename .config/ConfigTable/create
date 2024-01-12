@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 
-
+declare -a columns
 function create() {
     read -p "Enter table Name: " tablename
 
@@ -43,8 +43,14 @@ function create() {
                                          esac
                                 done
                                 columns+=("$col_name")  # create array named coloumn and add col_names to it
-                                   echo -n "$col_name:" >> ../.db/"$name"/"$tablename"    # -n to prevent new line
-                                   echo  "$data_type|" >> ../.db/"$name"/"$tablename"
+                               if [[ $i == $col_num ]]; then
+                                          echo -n "$col_name:" >> "../.db/$name/$tablename"    # -n to prevent a new line
+                                          echo "$data_type|" >> "../.db/$name/$tablename"
+                              else
+                                          echo -n "$col_name:" >> "../.db/$name/$tablename"    # -n to prevent a new line
+                                          echo -n "$data_type|" >> "../.db/$name/$tablename"
+                               fi
+
                                 break
                             done
                         done
