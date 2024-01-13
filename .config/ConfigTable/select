@@ -29,7 +29,7 @@ function selecttable() {
 
     while true; do
         echo "Select data options:"
-        select choice in "Select all table" "Select a column" "Search by PK"; do
+        select choice in "Select all table" "Select a column" "Search by PK" "Exit FRom DB *"$name"*"; do
             case $REPLY in
                 1)
                     # Display all rows
@@ -69,6 +69,10 @@ function selecttable() {
                     awk -v pk_col="$pk_index" -v pk_val="$pk_value" -F "|" '$pk_col == pk_val { print $0 }' "$tablepath"
                     break
                     ;;
+                4)
+                	echo "Exit From DB *"$name"* Successfully."
+                	exit
+                ;;
                 *)
                     echo -e "\e[1;31mInvalid option. Please enter 1, 2, or 3.\e[0m"
                     ;;
@@ -78,4 +82,3 @@ function selecttable() {
 }
 
 selecttable
-

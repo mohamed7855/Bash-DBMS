@@ -11,12 +11,13 @@ function create() {
         elif [[ "$tablename" =~ ^["~""$""=""!""@""%""&""{""}""#"":"]+$ ]]; then
             echo "Error: The table name can't start with special characters."
         elif [[ "$tablename" =~ ^[A-Za-z0-9".""_"" ""-"]+$ ]]; then
-            echo "Done"
+            #echo "Done"
             if [[ -f ../.db/"$name"/"$tablename" ]]; then
                 echo "Table *$tablename* Already Exists."
             else
                 touch ../.db/"$name"/"$tablename"
                 chmod 777 ../.db/"$name"/"$tablename"
+                echo "Table *"$tablename"* Created Successfully."
 
                 while true; do
                     read -p "Enter number of columns: " col_num
@@ -81,7 +82,6 @@ function create() {
 }
 
 create
-
 
 
 

@@ -7,11 +7,16 @@ function rename(){
 		# if user want to return MainMenu to check NameDB 
 		if  [[ $name =~ ^:[qQ]$ ]] ; then	
 			exit
-		elif [[ -d ../.db/$name ]] ;then 
-			echo "DB *$name* Already Exit"
+		elif [[ -d ../.db/"$name" ]] ;then
+			echo "DB Name Can't Be Start with Special Char At least 2char."
 			read -p "Enter New Name of DB? " newName
+			if [[ "$newName" =~ ^[A-Za-z0-9]+[".""_"" ""-"]*[A-Za-z0-9]+$ ]] ; then 
 			# rename DB
-			mv ../.db/$name ../.db/$newName
+				mv ../.db/"$name" ../.db/"$newName"
+			else
+				echo "Invalid Name."
+			fi
+			
 			break
 		else
 			echo "DB *$name* Not Exist"

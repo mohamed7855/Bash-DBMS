@@ -16,9 +16,9 @@ function create(){
 		          echo "Done"
 		          if [[ -d ../.db/"$name" ]] ;then 
 		              echo "DB *$name* Already Exist"
-		          else
+		          else	
 		              #mkdir -m 777 -p ../.db/"$name"
-		              sudo mkdir -p ../.db/"$name"
+		              mkdir -p ../.db/"$name"
 		              echo "DB *$name* Created Successfully."
 		              break
 		          fi 
@@ -28,3 +28,5 @@ function create(){
 }
 create
 
+#cd ..
+#echo $PWD

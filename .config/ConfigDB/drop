@@ -3,42 +3,50 @@ LC_COLLATE=C # Terminal Case Sensetive
 shopt -s extglob # Enable Special Pattern
 
 function drop(){
-	select choice in "DROP All DBs" "DROP BY NAME" "EXIT"
-	do 
-		case $REPLY in 
-		1)
-		  	if [[ -d ../.db ]] ;then
-		  		sudo rm -r ../.db				
-			else
-		 		echo "No DB created yet."         
-			fi
-		;;
-		2)
-		  	read -p "Enter DB Name: " name
-		  	while true ; 
-		  	do
-		  		# if user want to return MainMenu to check NameDB 
-		  		if [[ $name =~ ^:[qQ]$ ]] ; then	
-		  			exit
-		  		elif [[ -d ../.db/$name ]] ;then
-		  			sudo rm -r ../.db/"$name"
-		            	echo "DB *$name* Deleted Successfully."
-		            	break
-		          	else
-		          		echo "DB *$name* Not Exist to Delete."
-		          	fi
-		          	read -p "Please Re-Enter DB Name: " name
-			done
-		;;
-		3)
-		  	exit
-		;;
-		*)
-            echo "PLease Select Valid number 1|2."
-            ;;
-            
-            esac
-            
+	while true ; 
+	do
+		select choice in "DROP All DBs" "DROP BY NAME" "EXIT"
+		do 
+			case $REPLY in 
+			1)
+			  	if [[ -d ../.db ]] ;then
+			  		rm -r ../.db
+			  		echo "All DBs Deleted Successfully."
+			  		break				
+				else
+			 		echo "No DB created yet."         
+				fi
+			;;
+			2)
+				echo "If U WAnt to Delete All DB Press Space."
+			  	read -p "Enter DB Name: " name
+			  	while true ; 
+			  	do
+			  		# if user want to return MainMenu to check NameDB 
+			  		if [[ "$name" =~ ^:[qQ]$ ]] ; then	
+			  			exit
+			  		elif [[ -d ../.db/"$name" ]] ;then
+			  			rm -r ../.db/"$name"
+				      	echo "DB *$name* Deleted Successfully."
+				      	break
+				    	else
+				    		echo "DB *$name* Not Exist to Delete."
+				    	fi
+				    	read -p "Please Re-Enter DB Name: " name
+				done
+				# DB deleted then show Menu Drop need 2 break
+				break
+			;;
+			3)
+			  	exit
+			;;
+			*)
+		      echo "PLease Select Valid number 1|2|3."
+		      ;;
+		      
+		      esac
+		      
+		done
 	done
 }
 drop

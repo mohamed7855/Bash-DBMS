@@ -1,0 +1,26 @@
+#! /usr/bin/bash
+
+function rename(){
+
+	read -p "Which Table Want to Re-Name? " name
+	while true ; 
+	do
+		# if user want to return MainMenu to check NameDB 
+		if  [[ $name =~ ^:[qQ]$ ]] ; then	
+			exit
+		elif [[ -f ../.db/"$nameDB"/"$name" ]] ;then
+			read -p "Enter New Name of Table? " newName
+			if [[ "$newName" =~ ^[A-Za-z0-9]+[A-Za-z0-9".""_"" ""-"]*$ ]] ; then 
+			# rename Table
+				mv ../.db/"$nameDB"/"$name" ../.db/"$nameDB"/"$newName"
+				echo "Rename Table *"$name"* to *"$newName"* Successfully"
+				break
+			fi
+			
+		else
+			echo "Table *$name* Not Exist"
+		fi
+		read -p "Please Re-Enter Table Name: " name
+	done
+}
+rename

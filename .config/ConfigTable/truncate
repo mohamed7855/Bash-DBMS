@@ -10,7 +10,7 @@ function truncate(){
 			exit
 		elif [[ -f ../.db/"$nameDB"/"$name" ]] ;then 
 			# truncate 
-			sed -i '3,$d' ../.db/"$nameDB"/"$name"
+			sed -i '2,$d' ../.db/"$nameDB"/"$name"
 			break
 		else
 			echo "Table *$name* Not Exist."

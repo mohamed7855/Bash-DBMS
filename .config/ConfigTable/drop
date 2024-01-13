@@ -6,7 +6,7 @@ function drop(){
 	
 	while true ; 
 	do
-		select choice in "DROP All TABLEs" "DROP TABLE BY NAME" "EXIT"
+		select choice in "DROP All TABLEs" "DROP TABLE BY NAME" "Exit FRom DB *"$name"*"
 		do 
 			case $REPLY in 
 			1)
@@ -15,7 +15,7 @@ function drop(){
 
                                  
                             if [ -e $files ]; then
-                            sudo rm -f $files
+                            	rm -f $files
                              echo "All Tables Deleted Successfully."
                                  else
                                 echo "No Tables created yet."
@@ -30,7 +30,7 @@ function drop(){
 			  		if [[ $tablename =~ ^:[qQ]$ ]] ; then	
 			  			exit
 			  		elif [[ -f "../.db/$name/$tablename" ]] ;then
-			  			sudo rm -r ../.db/"$name"/"$tablename"
+			  			rm -r ../.db/"$name"/"$tablename"
 				      	echo "Table $tablename Deleted Successfully."
 				      	break
 				    	else
@@ -44,7 +44,8 @@ function drop(){
 				break
 			;;
 			3)
-			  	exit
+			  	echo "Exit From DB *"$name"* Successfully."
+                		exit
 			;;
 			*)
 		      echo "PLease Select Valid number 1|2|3."

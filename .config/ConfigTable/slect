@@ -1,0 +1,84 @@
+#!/usr/bin/bash
+
+function selecttable() {
+    while true; do
+        read -p "Enter table Name: " tablename
+
+        if [[ -f "../.db/$name/$tablename" ]]; then
+            break
+        else
+            echo "Table $tablename does not exist."
+        fi
+    done
+
+    # Read col_name & datatype from the table file (the first line)
+    tablepath="../.db/$name/$tablename"
+
+    # Get the first line from the file
+    firstline=$(head -n 1 "$tablepath")
+
+    # Extract column names and data types
+    IFS='|' read -ra columns <<< "$firstline"
+
+    # Display column names for the user to choose
+    echo "Available columns:"
+    for i in "${columns[@]}"; do
+        IFS=':' read -r col_name _ <<< "$i"
+        echo "$col_name"
+    done
+
+    while true; do
+        echo "Select data options:"
+        select choice in "Select all table" "Select a column" "Search by PK" "Exit Table"; do
+            case $REPLY in
+                1)
+                    # Display all rows
+                    awk -F "|" 'NR > 1 { print $0 }' "$tablepath"
+                    break
+                    ;;
+      2)
+                    read -p "Enter the name of the column you want to select: " selected_col
+
+                    # Check if the selected column exists
+                   # if [[ " ${columns[@]} " != " $selected_col " ]]; then
+                  
+                    #    echo "Column '$selected_col' does not exist."
+                     #   continue              # Go back to the beginning of the loop to prompt the user again
+                   # fi
+
+                    # Find the index of the selected column
+                    index=$(printf '%s\n' "${columns[@]}" | grep -n "^$selected_col:" | cut -d: -f1)
+
+                    # Print the data of the selected column
+                    awk -v col="$index" -F "|" 'NR>1 { print $col }' "$tablepath"
+                    break
+                    ;;
+                3)
+                    read -p "Enter the value of the primary key: " pk_value
+
+                    # Check if the primary key value is empty
+                    if [[ -z "$pk_value" ]]; then
+                        echo "Primary key value cannot be empty."
+                        continue  # Go back to the beginning of the loop to prompt the user again
+                    fi
+
+                    # Find the index of the primary key column
+                    pk_index=$(printf '%s\n' "${columns[@]}" | grep -n "(PK)" | cut -d: -f1)
+
+                    # Print the row with the specified primary key value
+                    awk -v pk_col="$pk_index" -v pk_val="$pk_value" -F "|" '$pk_col == pk_val { print $0 }' "$tablepath"
+                    break
+                    ;;
+                4)
+                	echo "Exit From Table"
+                 	break
+                 ;;
+                *)
+                    echo -e "\e[1;31mInvalid option. Please enter 1, 2, or 3.\e[0m"
+                    ;;
+            esac
+        done
+    done
+}
+
+selecttable

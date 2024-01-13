@@ -20,7 +20,7 @@ function delete(){
 				elif [[ "$newValue" =~ ^[yY]$ ]] ; then
 			     		sudo apt update
 			     		sudo apt install moreutils
-			     		break
+			     		deleteTable
 		    		elif [[ "$newValue" =~ ^[nN]$ ]] ; then
 					echo "Cancel Operation Successfully Sorry You can't Deleted."
 					break
@@ -44,6 +44,7 @@ function deleteTable(){
 	do
 	
 		columnsNum=$(awk -F '|' '{print NF; exit;}' ../.db/"$nameDB"/"$name")
+		((columnsNum--))
 		#echo $columnsNum
 		IFS="|" read -a columns <<< "$(awk -F '|' 'NR==1  {print $0}' ../.db/"$nameDB"/"$name")"
 		columnsName=()
@@ -53,8 +54,12 @@ function deleteTable(){
 			columnsName[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $1}' )
 			columnsType[$i]=$(echo "${columns[$i]}" | awk -F ':' '{print $2}' )
 		done
-		#echo ${columnsName[@]}
+		
+		unset columnsName[columnsNum]
+		unset columnsType[columnsNum]
+		echo ${columnsName[@]}
 		#echo ${columnsType[@]}
+		
 		
 		select choice in "DELETE COLUMN IN ALL RECORDs" "EXIT DB"
 		do
@@ -76,7 +81,7 @@ function deleteTable(){
 					case $REPLY in
 					[1-"$columnsNum"])
 						# user choose 3 as column can be id(pk) or age:num or name:string
-						if [[ "${columnsName[$REPLY-1]}" =~ .*\(pk\)$ ]];then
+						if [[ "${columnsName[$REPLY-1]}" =~ .*\(PK\)$ ]];then
 							echo "Column *${columnsName[$REPLY-1]}* is (PK) and Can't Delete it."
 							break
 						else
@@ -84,14 +89,14 @@ function deleteTable(){
 							# check data type then update
 							#echo "not pk: ${columnsName[$REPLY-1]}"
 							
-							if [[ "${columnsType[$REPLY-1]}" =~ ^(int|string)$ ]];then
+							if [[ "${columnsType[$REPLY-1]}" =~ ^(INT|STRING)$ ]];then
 								echo "column (${columnsName[$REPLY-1]}) will deleted in all records"
 								read -p "Are You Sure U Want To Delete? yY/nN." newValue
 								echo "type :q or :Q if you want to exit process and return to connect another DB."
 								if  [[ "$newValue" =~ ^:[qQ]$ ]] ; then	
 							  			break
 								elif [[ "$newValue" =~ ^[yY]$ ]] ; then
-							     		awk -F '|' -v val="" 'BEGIN{OFS=FS} NR>2 {$'"$REPLY"'=val}1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
+							     		awk -F '|' -v val="" 'BEGIN{OFS=FS} NR>1 {$'"$REPLY"'=val}1' "../.db/"$nameDB"/"$name"" | sponge "../.db/"$nameDB"/"$name""
 							     		echo "Column *${columnsName[$REPLY-1]}* Deleted Successfully."
 							     		exit
 							    	elif [[ "$newValue" =~ ^[nN]$ ]] ; then
