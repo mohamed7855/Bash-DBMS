@@ -40,11 +40,11 @@ function selecttable() {
                     read -p "Enter the name of the column you want to select: " selected_col
 
                     # Check if the selected column exists
-                   # if [[ " ${columns[@]} " != " $selected_col " ]]; then
+                   if [[ " ${columns[@]} " != " $selected_col " ]]; then
                   
-                    #    echo "Column '$selected_col' does not exist."
-                     #   continue              # Go back to the beginning of the loop to prompt the user again
-                   # fi
+                      echo "Column '$selected_col' does not exist."
+                     continue              # Go back to the beginning of the loop to prompt the user again
+                   fi
 
                     # Find the index of the selected column
                     index=$(printf '%s\n' "${columns[@]}" | grep -n "^$selected_col:" | cut -d: -f1)
